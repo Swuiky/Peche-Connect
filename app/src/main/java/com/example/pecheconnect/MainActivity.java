@@ -40,7 +40,7 @@ public class MainActivity extends AppCompatActivity {
         edtMDP = findViewById(R.id.edt_MDP);
         btn_Enregistrer = findViewById(R.id.btn_Enregistrer);
 
-        // Action pour S'ENREGISTRER (C08 - Coder)
+        // Action pour S'ENREGISTRER
         btn_Enregistrer.setOnClickListener(v -> {
             String email = edtEmail.getText().toString();
             String mdp = edtMDP.getText().toString();
@@ -55,9 +55,7 @@ public class MainActivity extends AppCompatActivity {
                 Toast.makeText(this, "Champs vides !", Toast.LENGTH_SHORT).show();
             }
         });
-        // ----------------------------------
 
-        // Ton code existant pour aller à la connexion
         TextView btnConnexion = findViewById(R.id.textView4);
         btnConnexion.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
