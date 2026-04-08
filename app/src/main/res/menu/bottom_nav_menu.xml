@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/nav_dashboard"
+        android:icon="@drawable/nav_item_selector"
+        android:title="Tableau de bord" />
+    <item
+        android:id="@+id/nav_alerts"
+        android:icon="@drawable/nav_item_selector"
+        android:title="Alertes" />
+    <item
+        android:id="@+id/nav_map"
+        android:icon="@drawable/nav_item_selector"
+        android:title="Carte" />
+</menu>
