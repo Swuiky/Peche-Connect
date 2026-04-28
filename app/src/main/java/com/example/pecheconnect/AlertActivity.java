@@ -31,13 +31,13 @@ public class AlertActivity extends AppCompatActivity {
                 startActivity(intent);
                 // Transition 0,0 pour éviter que l'écran ne "saute"
                 overridePendingTransition(0, 0);
-                finish(); // On ferme l'activité actuelle pour ne pas empiler les pages
+                finish();
                 return true;
 
             } else if (id == R.id.nav_map) {
-                // Si tu crées une MapActivity plus tard
-                // startActivity(new Intent(AlertActivity.this, MapActivity.class));
-                // overridePendingTransition(0, 0);
+                startActivity(new Intent(AlertActivity.this, MapActivity.class));
+                overridePendingTransition(0, 0);
+                finish();
                 return true;
 
             } else if (id == R.id.nav_alerts) {

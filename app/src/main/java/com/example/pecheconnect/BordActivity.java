@@ -57,8 +57,9 @@ public class BordActivity extends AppCompatActivity {
                 return true;
 
             } else if (id == R.id.nav_map) {
-                // Si tu as une MapActivity, décommente la ligne suivante :
-                // startActivity(new Intent(BordActivity.this, MapActivity.class));
+                startActivity(new Intent(BordActivity.this, MapActivity.class));
+                overridePendingTransition(0, 0);
+                finish();
                 return true;
 
             } else if (id == R.id.nav_dashboard) {
