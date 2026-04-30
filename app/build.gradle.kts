@@ -48,4 +48,6 @@ dependencies {
     // OkHttp + Logger pour voir ce qui se passe (ce qui te manquait)
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
     implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
+
+    implementation("org.osmdroid:osmdroid-android:6.1.18")
 }
