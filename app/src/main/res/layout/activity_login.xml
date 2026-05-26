@@ -103,14 +103,14 @@
         android:layout_marginStart="177dp"
         android:layout_marginTop="508dp"
         android:layout_marginEnd="176dp"
-        android:text="Vous n'avez pas de compte : s'enregistrer ici"
+        android:clickable="true"
+        android:focusable="true"
+        android:text="Contactez le patron si vous n'avez pas de compte"
         android:textColor="#80B7E9"
         android:textSize="14sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.503"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        android:clickable="true"
-        android:focusable="true"/>
+        app:layout_constraintTop_toTopOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

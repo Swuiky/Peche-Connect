@@ -66,10 +66,5 @@ public class LoginActivity extends AppCompatActivity {
             }
         });
 
-        TextView btnVersInscription = findViewById(R.id.textView4);
-        btnVersInscription.setOnClickListener(v -> {
-            Intent intent = new Intent(LoginActivity.this, MainActivity.class);
-            startActivity(intent);
-        });
     }
 }
