@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>PêcheConnect — Connexion</title>
+  <style>
+    body  { font-family: Arial, sans-serif; max-width: 420px; margin: 60px auto; padding: 0 16px }
+    .card { border: 1px solid #ddd; border-radius: 12px; padding: 16px }
+    label { display: block; margin-top: 12px }
+    input { width: 100%; padding: 10px; margin-top: 6px }
+    button { margin-top: 16px; width: 100%; padding: 10px; cursor: pointer }
+    .erreur { color: #b00020; margin-top: 10px }
+    .indice { color: #555; font-size: 13px; margin-top: 8px }
+  </style>
+</head>
+<body>
+  <h2>PêcheConnect</h2>
+
+  <div class="card">
+    <label>Email</label>
+    <input id="email" type="email" value="admin@peche.local" />
+
+    <label>Mot de passe</label>
+    <input id="motDePasse" type="password" value="admin123" />
+
+    <button id="boutonConnexion">Se connecter</button>
+    <div class="indice">API attendue : http://172.29.60.251:3000</div>
+    <div id="zoneErreur" class="erreur"></div>
+  </div>
+
+  <script>
+    // Adresse de l'API (modifier si le serveur est sur une autre machine)
+    const API = "http://172.29.60.251:3000";
+
+    document.getElementById("boutonConnexion").addEventListener("click", async () => {
+      const email      = document.getElementById("email").value.trim();
+      const motDePasse = document.getElementById("motDePasse").value;
+
+      document.getElementById("zoneErreur").textContent = "";
+
+      try {
+        const reponse = await fetch(API + "/auth/connexion", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, motDePasse })
+        });
+
+        const donnees = await reponse.json().catch(() => ({}));
+        if (!reponse.ok)
+          throw new Error(donnees.erreur || "Erreur connexion (" + reponse.status + ")");
+
+        // Sauvegarde du token et des infos utilisateur dans le navigateur
+        localStorage.setItem("pc_token", donnees.token);
+        localStorage.setItem("pc_user", JSON.stringify(donnees.utilisateur));
+        window.location.href = "./app.html";
+
+      } catch (err) {
+        document.getElementById("zoneErreur").textContent = err.message || String(err);
+      }
+    });
+  </script>
+</body>
+</html>

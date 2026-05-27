@@ -1,0 +1,373 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>PêcheConnect — Tableau de bord</title>
+  <style>
+    :root {
+      --fond:    #f6f7fb;
+      --carte:   #ffffff;
+      --texte:   #0f172a;
+      --discret: #64748b;
+      --bordure: #e2e8f0;
+      --ombre:   0 8px 24px rgba(15,23,42,.08);
+      --ok-fond: #e9fff2; --ok-texte: #0f7a3b;
+      --ko-fond: #ffe9ea; --ko-texte: #b42318;
+      --at-fond: #fff7e6; --at-texte: #a05a00;
+      --accent:  #2563eb;
+    }
+    * { box-sizing: border-box }
+    body { margin: 0; font-family: system-ui, Arial; background: var(--fond); color: var(--texte) }
+
+    .conteneur   { max-width: 1100px; margin: 28px auto; padding: 0 16px }
+    .entete      { display: flex; gap: 16px; align-items: flex-start; justify-content: space-between; margin-bottom: 16px }
+    .titre h1    { margin: 0; font-size: 22px }
+    .titre p     { margin: 6px 0 0; color: var(--discret); font-size: 13px }
+    .actions     { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; justify-content: flex-end }
+
+    .puce {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 8px 10px; border: 1px solid var(--bordure); border-radius: 999px;
+      background: var(--carte); font-size: 13px; color: var(--discret);
+    }
+    .point     { width: 8px; height: 8px; border-radius: 99px; background: #94a3b8 }
+    .point.ok  { background: #22c55e }
+    .point.ko  { background: #ef4444 }
+
+    .btn           { border: 1px solid var(--bordure); background: var(--carte); padding: 9px 12px; border-radius: 10px; cursor: pointer; font-weight: 600 }
+    .btn.principal { background: var(--accent); border-color: var(--accent); color: white }
+    .btn:disabled  { opacity: .6; cursor: not-allowed }
+    .btn.petit     { padding: 7px 10px; font-size: 12px }
+
+    .grille { display: grid; grid-template-columns: repeat(12, 1fr); gap: 14px; margin: 14px 0 }
+    .carte  { background: var(--carte); border: 1px solid var(--bordure); border-radius: 16px; box-shadow: var(--ombre) }
+    .carte .en-tete    { padding: 14px 14px 0 }
+    .carte .en-tete h2 { margin: 0; font-size: 16px }
+    .carte .corps      { padding: 14px }
+
+    .kpi          { grid-column: span 4 }
+    .kpi .valeur  { font-size: 28px; font-weight: 800; margin-top: 6px }
+    .kpi .libelle { color: var(--discret); font-size: 13px }
+    .kpi .indice  { margin-top: 10px; font-size: 12px; color: var(--discret) }
+    .pleine-largeur { grid-column: span 12 }
+
+    .mini { font-size: 12px; color: var(--discret) }
+
+    table    { width: 100%; border-collapse: separate; border-spacing: 0 }
+    thead th { text-align: left; font-size: 12px; color: var(--discret); font-weight: 700; padding: 10px 12px; border-bottom: 1px solid var(--bordure) }
+    tbody td { padding: 12px; border-bottom: 1px solid var(--bordure); vertical-align: middle; font-size: 14px }
+    tbody tr:hover { background: #fafbff }
+
+    .badge    { display: inline-flex; align-items: center; padding: 5px 10px; border-radius: 999px; font-weight: 700; font-size: 12px }
+    .badge.ok { background: var(--ok-fond); color: var(--ok-texte) }
+    .badge.ko { background: var(--ko-fond); color: var(--ko-texte) }
+    .badge.at { background: var(--at-fond); color: var(--at-texte) }
+
+    .actions-cellule { display: flex; gap: 8px; align-items: center; justify-content: flex-end; flex-wrap: wrap }
+
+    .notice { padding: 10px 12px; border: 1px solid var(--bordure); border-radius: 12px; background: #fbfbfe; color: var(--discret); font-size: 13px }
+    .erreur { padding: 12px; border: 1px solid rgba(180,35,24,.2); border-radius: 12px; background: var(--ko-fond); color: var(--ko-texte); font-weight: 700; white-space: pre-wrap }
+
+    @media (max-width: 900px) { .kpi { grid-column: span 6 } }
+    @media (max-width: 600px) { .kpi { grid-column: span 12 } .actions-cellule { justify-content: flex-start } }
+  </style>
+</head>
+
+<body>
+  <div class="conteneur">
+
+    <div class="entete">
+      <div class="titre">
+        <h1>PêcheConnect — Tableau de bord</h1>
+        <p>Suivi des casiers connectés : dernier état, prises, batterie et alertes.</p>
+      </div>
+      <div class="actions">
+        <div class="puce" title="Statut de l'API">
+          <span id="pointStatutApi" class="point"></span>
+          <span id="texteStatutApi">API : vérification...</span>
+        </div>
+        <button class="btn" id="boutonActualiser">Actualiser</button>
+        <button class="btn" id="boutonDeconnexion">Déconnexion</button>
+      </div>
+    </div>
+
+    <div class="grille">
+      <div class="carte kpi">
+        <div class="en-tete"><h2>Casiers</h2></div>
+        <div class="corps">
+          <div class="libelle">Nombre total</div>
+          <div class="valeur" id="compteurCasiers">—</div>
+          <div class="indice" id="indiceCasiers">—</div>
+        </div>
+      </div>
+
+      <div class="carte kpi">
+        <div class="en-tete"><h2>Alertes</h2></div>
+        <div class="corps">
+          <div class="libelle">Casiers en alerte</div>
+          <div class="valeur" id="compteurAlertes">—</div>
+          <div class="indice">Accuser réception pour traiter une alerte.</div>
+        </div>
+      </div>
+
+      <div class="carte kpi">
+        <div class="en-tete"><h2>État global</h2></div>
+        <div class="corps">
+          <div class="libelle">Casiers OK</div>
+          <div class="valeur" id="compteurOk">—</div>
+          <div class="indice" id="infoUtilisateur">—</div>
+        </div>
+      </div>
+
+      <div class="carte pleine-largeur">
+        <div class="en-tete"><h2>Liste des casiers</h2></div>
+        <div class="corps">
+          <div id="zoneMessage"></div>
+          <table>
+            <thead>
+              <tr>
+                <th style="width:64px">ID</th>
+                <th>UID</th>
+                <th>Nom</th>
+                <th>Dernière mesure</th>
+                <th>Prises</th>
+                <th>Batterie</th>
+                <th>Statut</th>
+                <th style="width:220px; text-align:right">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="lignesCasiers"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="carte" style="margin-top:14px">
+      <div class="en-tete"><h2>Historique des sessions</h2></div>
+      <div class="corps">
+        <div id="messageSessions"></div>
+        <table>
+          <thead>
+            <tr>
+              <th>N° session</th>
+              <th>Début</th>
+              <th>Fin</th>
+              <th>Casiers</th>
+              <th>Mesures</th>
+              <th>Prises totales</th>
+            </tr>
+          </thead>
+          <tbody id="lignesSessions"></tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    // Adresse de l'API (modifier si le serveur est sur une autre machine)
+    const API = "http://172.29.60.251:3000";
+
+    // Récupération du token et des infos utilisateur stockés lors de la connexion
+    const token       = localStorage.getItem("pc_token");
+    const utilisateur = JSON.parse(localStorage.getItem("pc_user") || "null");
+
+    // Si pas de token, on redirige vers la page de connexion
+    if (!token) window.location.href = "./login.html";
+
+    // Affichage de l'utilisateur connecté
+    document.getElementById("infoUtilisateur").textContent =
+      utilisateur ? `Connecté : ${utilisateur.email} (${utilisateur.role})` : "Connecté";
+
+    // Bouton Déconnexion : on efface le token et on revient à la page de connexion
+    document.getElementById("boutonDeconnexion").addEventListener("click", () => {
+      localStorage.removeItem("pc_token");
+      localStorage.removeItem("pc_user");
+      window.location.href = "./login.html";
+    });
+
+    document.getElementById("boutonActualiser").addEventListener("click", () => chargerTableauDeBord());
+
+    // -----------------------------------------------
+    // Appel API générique
+    // Envoie le token JWT dans le header Authorization
+    // methode = "GET" par défaut
+    // -----------------------------------------------
+    async function appelApi(chemin, methode = "GET") {
+      const reponse = await fetch(API + chemin, {
+        method: methode,
+        headers: { "Authorization": "Bearer " + token }
+      });
+      const donnees = await reponse.json().catch(() => ({}));
+      if (!reponse.ok) throw new Error(donnees.erreur || "Erreur " + reponse.status);
+      return donnees;
+    }
+
+    // Formate une date ISO en date lisible en français
+    function formaterDate(valeur) {
+      if (!valeur) return "—";
+      return new Date(valeur).toLocaleString("fr-FR");
+    }
+
+    // Retourne un badge HTML coloré selon le niveau de batterie
+    function afficherBatterie(pct) {
+      if (pct == null) return `<span class="mini">—</span>`;
+      if (pct <= 20)   return `<span class="badge ko">${pct}%</span>`;
+      if (pct <= 40)   return `<span class="badge at">${pct}%</span>`;
+      return               `<span class="badge ok">${pct}%</span>`;
+    }
+
+    // Affiche un message dans la zone dédiée du tableau des casiers
+    function afficherMessage(type, texte) {
+      const zone = document.getElementById("zoneMessage");
+      if (!texte) { zone.innerHTML = ""; return; }
+      zone.innerHTML = type === "erreur"
+        ? `<div class="erreur">${texte}</div>`
+        : `<div class="notice">${texte}</div>`;
+    }
+
+    // Vérifie si l'API est accessible et met à jour l'indicateur en haut de page
+    async function verifierApi() {
+      try {
+        const reponse = await fetch(API + "/statut");
+        const ok = reponse.ok;
+        document.getElementById("pointStatutApi").className = "point " + (ok ? "ok" : "ko");
+        document.getElementById("texteStatutApi").textContent = ok ? "API : en ligne" : "API : hors ligne";
+      } catch {
+        document.getElementById("pointStatutApi").className = "point ko";
+        document.getElementById("texteStatutApi").textContent = "API : hors ligne";
+      }
+    }
+
+    // Charge et affiche l'historique des sessions de pêche
+    async function chargerSessions() {
+      document.getElementById("lignesSessions").innerHTML = "";
+
+      try {
+        const sessions = await appelApi("/sessions");
+
+        if (!sessions.length) {
+          document.getElementById("messageSessions").innerHTML = `<div class="notice">Aucune session enregistrée.</div>`;
+          return;
+        }
+        document.getElementById("messageSessions").innerHTML = "";
+
+        for (const s of sessions) {
+          const ligne = document.createElement("tr");
+          ligne.innerHTML = `
+            <td><b>${s.id_session}</b></td>
+            <td>${formaterDate(s.debut)}</td>
+            <td>${s.fin ? formaterDate(s.fin) : '<span class="mini">En cours</span>'}</td>
+            <td>${s.nb_casiers}</td>
+            <td>${s.nb_mesures}</td>
+            <td>${s.total_prises}</td>
+          `;
+          document.getElementById("lignesSessions").appendChild(ligne);
+        }
+      } catch {
+        document.getElementById("messageSessions").innerHTML = `<div class="erreur">Impossible de charger les sessions.</div>`;
+      }
+    }
+
+    // Charge et affiche le tableau de bord principal
+    async function chargerTableauDeBord() {
+      await verifierApi();
+
+      document.getElementById("lignesCasiers").innerHTML = "";
+      afficherMessage("", "");
+
+      try {
+        const casiers = await appelApi("/casiers");
+
+        // Mise à jour du compteur de casiers
+        document.getElementById("compteurCasiers").textContent = casiers.length;
+        document.getElementById("indiceCasiers").textContent = casiers.length
+          ? "Suivi en temps réel via API + BDD"
+          : "Aucun casier enregistré";
+
+        let nbAlertes = 0;
+        let nbOk      = 0;
+
+        for (const casier of casiers) {
+          // Chargement de la dernière mesure et des alertes pour ce casier
+          const mesure  = await appelApi(`/casiers/${casier.id_casier}/derniere-mesure`).catch(() => null);
+          const alertes = await appelApi(`/casiers/${casier.id_casier}/alertes`).catch(() => []);
+
+          // Première alerte non acquittée (s'il y en a une)
+          const premiereAlerte = Array.isArray(alertes) && alertes.length ? alertes[0] : null;
+
+          const badgeStatut = premiereAlerte
+            ? `<span class="badge ko">${premiereAlerte.type_alerte}</span>`
+            : `<span class="badge ok">OK</span>`;
+
+          if (premiereAlerte) nbAlertes++; else nbOk++;
+
+          const ligne = document.createElement("tr");
+          ligne.innerHTML = `
+            <td><b>${casier.id_casier}</b></td>
+            <td>${casier.uid}</td>
+            <td>${casier.label}</td>
+            <td>${formaterDate(mesure?.date_mesure)}</td>
+            <td>${mesure?.nb_prises ?? "—"}</td>
+            <td>${afficherBatterie(mesure?.batterie_pct)}</td>
+            <td>${badgeStatut}</td>
+            <td style="text-align:right">
+              <div class="actions-cellule">
+                ${premiereAlerte ? `<button class="btn petit principal" data-alerte="${premiereAlerte.id_alerte}">Accuser réception</button>` : ""}
+                <button class="btn petit" data-detail="${casier.id_casier}">Détails</button>
+              </div>
+            </td>
+          `;
+          document.getElementById("lignesCasiers").appendChild(ligne);
+
+          // Clic sur "Accuser réception" : acquitte l'alerte et recharge le tableau
+          const boutonAck = ligne.querySelector("button[data-alerte]");
+          if (boutonAck) {
+            boutonAck.addEventListener("click", async () => {
+              boutonAck.disabled = true;
+              const texteOriginal = boutonAck.textContent;
+              boutonAck.textContent = "Traitement...";
+              try {
+                await appelApi(`/alertes/${boutonAck.dataset.alerte}/acquitter`, "PATCH");
+                afficherMessage("info", "Alerte accusée. Le statut va se mettre à jour.");
+                await chargerTableauDeBord();
+              } catch (err) {
+                afficherMessage("erreur", "Erreur : " + (err.message || err));
+                boutonAck.disabled = false;
+                boutonAck.textContent = texteOriginal;
+              }
+            });
+          }
+
+          // Clic sur "Détails" : affiche les infos du casier dans une popup
+          const boutonDetail = ligne.querySelector("button[data-detail]");
+          if (boutonDetail) {
+            boutonDetail.addEventListener("click", () => {
+              alert(
+                `Casier : ${casier.label}\n` +
+                `UID : ${casier.uid}\n` +
+                `Dernière mesure : ${formaterDate(mesure?.date_mesure)}\n` +
+                `Prises : ${mesure?.nb_prises ?? "—"}\n` +
+                `Batterie : ${mesure?.batterie_pct ?? "—"}%`
+              );
+            });
+          }
+        }
+
+        // Mise à jour des compteurs KPI
+        document.getElementById("compteurAlertes").textContent = nbAlertes;
+        document.getElementById("compteurOk").textContent      = nbOk;
+
+        await chargerSessions();
+
+      } catch (err) {
+        afficherMessage("erreur", "Impossible de charger le tableau de bord.\n" + (err.message || err));
+      }
+    }
+
+    // Chargement initial au démarrage de la page
+    chargerTableauDeBord();
+  </script>
+</body>
+</html>
